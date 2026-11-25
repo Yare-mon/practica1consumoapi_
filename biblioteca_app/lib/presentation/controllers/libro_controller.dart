@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import '../../domain/models/libro.dart';
 import '../../domain/repository/libro_repository.dart';
 
+/// Opciones del filtro de la lista (mejora: buscador y filtros).
+enum FiltroDisponibilidad { todos, disponibles, prestados }
+
 /// Estado para las vistas: loading, error e items.
 /// Cada notifyListeners() hace que la vista se vuelva a dibujar.
 class LibroController extends ChangeNotifier {
@@ -14,6 +17,38 @@ class LibroController extends ChangeNotifier {
   bool loading = false;
   String? error;
 
+  String busqueda = '';
+  FiltroDisponibilidad filtro = FiltroDisponibilidad.todos;
+
+  /// Libros que se muestran en Home despues de aplicar busqueda y filtro.
+  List<Libro> get visibles {
+    final texto = busqueda.trim().toLowerCase();
+    return items.where((l) {
+      final coincide = texto.isEmpty ||
+          l.titulo.toLowerCase().contains(texto) ||
+          l.autor.toLowerCase().contains(texto);
+      final pasaFiltro = switch (filtro) {
+        FiltroDisponibilidad.todos => true,
+        FiltroDisponibilidad.disponibles => l.disponible,
+        FiltroDisponibilidad.prestados => !l.disponible,
+      };
+      return coincide && pasaFiltro;
+    }).toList();
+  }
+
+  int get totalDisponibles => items.where((l) => l.disponible).length;
+  int get totalPrestados => items.length - totalDisponibles;
+
+  void buscar(String texto) {
+    busqueda = texto;
+    notifyListeners();
+  }
+
+  void cambiarFiltro(FiltroDisponibilidad nuevo) {
+    filtro = nuevo;
+    notifyListeners();
+  }
+
   /// Busca un libro ya cargado en la lista (lo usa la vista de editar).
   Libro? buscarPorId(int id) {
     for (final l in items) {
@@ -22,7 +57,7 @@ class LibroController extends ChangeNotifier {
     return null;
   }
 
-  // ✅ GET: se llama al abrir Home
+  // GET: se llama al abrir Home
   Future<void> cargar() async {
     loading = true;
     error = null;
@@ -39,7 +74,7 @@ class LibroController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ POST: regresa null si salio bien, o el mensaje de error
+  // POST: regresa null si salio bien, o el mensaje de error
   Future<String?> crear(Libro libro) async {
     try {
       await repo.crear(libro);
@@ -52,10 +87,11 @@ class LibroController extends ChangeNotifier {
     }
   }
 
+  // PUT (TODO 3a)
   Future<String?> actualizar(Libro libro) async {
     try {
       await repo.actualizar(libro);
-      await cargar();
+      await cargar(); // recargar la lista para ver el cambio
       return null;
     } on DioException catch (e) {
       return _mensaje(e);
@@ -64,10 +100,11 @@ class LibroController extends ChangeNotifier {
     }
   }
 
+  // DELETE (TODO 3b)
   Future<String?> eliminar(int id) async {
     try {
       await repo.eliminar(id);
-      await cargar();
+      await cargar(); // recargar la lista para ver el cambio
       return null;
     } on DioException catch (e) {
       return _mensaje(e);
