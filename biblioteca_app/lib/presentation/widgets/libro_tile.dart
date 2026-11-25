@@ -22,8 +22,12 @@ class LibroTile extends StatelessWidget {
         title: const Text('Eliminar libro'),
         content: Text('¿Eliminar "${libro.titulo}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Eliminar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Eliminar')),
         ],
       ),
     );
@@ -36,6 +40,7 @@ class LibroTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: () => context.push('/libro/${libro.id}'),
       leading: Icon(
         libro.disponible ? Icons.menu_book : Icons.lock_clock,
         color: libro.disponible ? Colors.green : Colors.orange,

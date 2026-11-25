@@ -10,9 +10,12 @@ class LibroRepository {
   // ✅ GET
   Future<List<Libro>> getLibros() async {
     final data = await service.getLibros();
-    return data
-        .map((e) => Libro.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return data.map((e) => Libro.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Libro> getLibro(int id) async {
+    final data = await service.getLibro(id);
+    return Libro.fromJson(data);
   }
 
   // ✅ POST
@@ -21,18 +24,12 @@ class LibroRepository {
     return Libro.fromJson(data);
   }
 
-  // ---------------------------------------------------------------------------
-  // TODO 2a (PUT): llamen a service.actualizar(libro.id!, libro.toJson())
-  // y conviertan la respuesta con Libro.fromJson(...).
-  // ---------------------------------------------------------------------------
   Future<Libro> actualizar(Libro libro) async {
-    throw UnimplementedError('TODO 2a: falta actualizar en LibroRepository');
+    final data = await service.actualizar(libro.id!, libro.toJson());
+    return Libro.fromJson(data);
   }
 
-  // ---------------------------------------------------------------------------
-  // TODO 2b (DELETE): llamen a service.eliminar(id).
-  // ---------------------------------------------------------------------------
   Future<void> eliminar(int id) async {
-    throw UnimplementedError('TODO 2b: falta eliminar en LibroRepository');
+    await service.eliminar(id);
   }
 }
