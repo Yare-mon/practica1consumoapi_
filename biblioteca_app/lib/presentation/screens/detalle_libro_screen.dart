@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/libro.dart';
@@ -7,7 +8,7 @@ import '../controllers/libro_controller.dart';
 
 /// RETO: detalle de un libro. Consume GET /api/libros/{id} directamente
 /// (no usa la lista en memoria), asi se ve el 404 si el libro ya no existe.
-/// MEJORA: nuevo diseno (encabezado, chip de estado y tarjeta de datos).
+/// MEJORA: nuevo diseno y boton Reintentar.
 class DetalleLibroScreen extends StatefulWidget {
   const DetalleLibroScreen({super.key, required this.id});
   final int id;
@@ -22,9 +23,15 @@ class _DetalleLibroScreenState extends State<DetalleLibroScreen> {
   @override
   void initState() {
     super.initState();
-    // El Future se crea una sola vez para no repetir la peticion en cada build.
+    _cargar();
+  }
+
+  /// Pide el libro a la API. Se llama al abrir, al reintentar y al volver de editar.
+  void _cargar() {
     _futuro = context.read<LibroController>().repo.getLibro(widget.id);
   }
+
+  void _reintentar() => setState(_cargar);
 
   String _mensajeError(Object e) {
     if (e is DioException) {
@@ -48,15 +55,32 @@ class _DetalleLibroScreenState extends State<DetalleLibroScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
+            final noExiste = snap.error is DioException &&
+                (snap.error as DioException).response?.statusCode == 404;
             return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.search_off, size: 64),
-                  const SizedBox(height: 12),
-                  Text(_mensajeError(snap.error!),
-                      style: Theme.of(context).textTheme.titleMedium),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(noExiste ? Icons.search_off : Icons.wifi_off, size: 64),
+                    const SizedBox(height: 12),
+                    Text(_mensajeError(snap.error!),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 16),
+                    // Si el libro no existe no tiene caso reintentar.
+                    noExiste
+                        ? OutlinedButton(
+                            onPressed: () => context.go('/home'),
+                            child: const Text('Volver a la lista'),
+                          )
+                        : FilledButton(
+                            onPressed: _reintentar,
+                            child: const Text('Reintentar'),
+                          ),
+                  ],
+                ),
               ),
             );
           }
