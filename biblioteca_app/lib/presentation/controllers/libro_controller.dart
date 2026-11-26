@@ -7,8 +7,8 @@ import '../../domain/repository/libro_repository.dart';
 /// Opciones del filtro de la lista (mejora: buscador y filtros).
 enum FiltroDisponibilidad { todos, disponibles, prestados }
 
-/// Estado para las vistas: loading, error e items.
-/// Cada notifyListeners() hace que la vista se vuelva a dibujar.
+enum OrdenLibros { registro, titulo, autor, anio }
+
 class LibroController extends ChangeNotifier {
   LibroController(this.repo);
   final LibroRepository repo;
@@ -17,13 +17,18 @@ class LibroController extends ChangeNotifier {
   bool loading = false;
   String? error;
 
+  // ---------------------------------------------------------------------------
+  // MEJORA: buscador, filtros y orden (se aplican sobre la lista ya cargada,
+  // no hacen peticiones nuevas a la API).
+  // ---------------------------------------------------------------------------
   String busqueda = '';
   FiltroDisponibilidad filtro = FiltroDisponibilidad.todos;
+  OrdenLibros orden = OrdenLibros.registro;
 
-  /// Libros que se muestran en Home despues de aplicar busqueda y filtro.
+  /// Libros que se muestran en Home despues de aplicar busqueda, filtro y orden.
   List<Libro> get visibles {
     final texto = busqueda.trim().toLowerCase();
-    return items.where((l) {
+    final lista = items.where((l) {
       final coincide = texto.isEmpty ||
           l.titulo.toLowerCase().contains(texto) ||
           l.autor.toLowerCase().contains(texto);
@@ -34,6 +39,21 @@ class LibroController extends ChangeNotifier {
       };
       return coincide && pasaFiltro;
     }).toList();
+
+    // Ordenar la lista ya filtrada (registro = no se ordena).
+    switch (orden) {
+      case OrdenLibros.registro:
+        break;
+      case OrdenLibros.titulo:
+        lista.sort(
+            (a, b) => a.titulo.toLowerCase().compareTo(b.titulo.toLowerCase()));
+      case OrdenLibros.autor:
+        lista.sort(
+            (a, b) => a.autor.toLowerCase().compareTo(b.autor.toLowerCase()));
+      case OrdenLibros.anio:
+        lista.sort((a, b) => a.anio.compareTo(b.anio));
+    }
+    return lista;
   }
 
   int get totalDisponibles => items.where((l) => l.disponible).length;
@@ -46,6 +66,11 @@ class LibroController extends ChangeNotifier {
 
   void cambiarFiltro(FiltroDisponibilidad nuevo) {
     filtro = nuevo;
+    notifyListeners();
+  }
+
+  void cambiarOrden(OrdenLibros nuevo) {
+    orden = nuevo;
     notifyListeners();
   }
 
