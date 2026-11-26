@@ -5,10 +5,11 @@ import 'package:provider/provider.dart';
 
 import '../../domain/models/libro.dart';
 import '../controllers/libro_controller.dart';
+import '../widgets/acciones_detalle.dart';
 
 /// RETO: detalle de un libro. Consume GET /api/libros/{id} directamente
 /// (no usa la lista en memoria), asi se ve el 404 si el libro ya no existe.
-/// MEJORA: nuevo diseno y boton Reintentar.
+/// MEJORA: nuevo diseno, boton Reintentar y acciones Editar / Eliminar.
 class DetalleLibroScreen extends StatefulWidget {
   const DetalleLibroScreen({super.key, required this.id});
   final int id;
@@ -32,6 +33,46 @@ class _DetalleLibroScreenState extends State<DetalleLibroScreen> {
   }
 
   void _reintentar() => setState(_cargar);
+
+  /// Abre el formulario de edicion y, al regresar, vuelve a pedir el libro
+  /// para mostrar los datos actualizados.
+  Future<void> _editar() async {
+    await context.push('/editar/${widget.id}');
+    if (!mounted) return;
+    setState(_cargar);
+  }
+
+  /// Pide confirmacion, elimina con el controller y regresa a la lista.
+  Future<void> _eliminar(Libro libro) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final controller = context.read<LibroController>();
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar libro'),
+        content: Text('¿Eliminar "${libro.titulo}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Eliminar')),
+        ],
+      ),
+    );
+    if (confirmar != true) return;
+
+    final error = await controller.eliminar(libro.id!);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(content: Text(error ?? 'Libro eliminado')));
+
+    if (error == null) {
+      // Si se llego por URL directa no hay pantalla atras: se va a Home.
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
+    }
+  }
 
   String _mensajeError(Object e) {
     if (e is DioException) {
@@ -150,6 +191,12 @@ class _DetalleLibroScreenState extends State<DetalleLibroScreen> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 24),
+        // MEJORA: botones Editar y Eliminar.
+        AccionesDetalle(
+          onEditar: _editar,
+          onEliminar: () => _eliminar(libro),
         ),
       ],
     );
