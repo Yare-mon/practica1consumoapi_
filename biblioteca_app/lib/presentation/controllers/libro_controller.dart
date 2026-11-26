@@ -17,10 +17,6 @@ class LibroController extends ChangeNotifier {
   bool loading = false;
   String? error;
 
-  // ---------------------------------------------------------------------------
-  // MEJORA: buscador, filtros y orden (se aplican sobre la lista ya cargada,
-  // no hacen peticiones nuevas a la API).
-  // ---------------------------------------------------------------------------
   String busqueda = '';
   FiltroDisponibilidad filtro = FiltroDisponibilidad.todos;
   OrdenLibros orden = OrdenLibros.registro;
@@ -71,6 +67,17 @@ class LibroController extends ChangeNotifier {
 
   void cambiarOrden(OrdenLibros nuevo) {
     orden = nuevo;
+    notifyListeners();
+  }
+
+  /// true si hay algo escrito en el buscador o un chip distinto de "Todos".
+  bool get hayFiltros =>
+      busqueda.isNotEmpty || filtro != FiltroDisponibilidad.todos;
+
+  /// R¿resa a la lista completa: borra la busqueda y pone el chip en "Todos".
+  void limpiarFiltros() {
+    busqueda = '';
+    filtro = FiltroDisponibilidad.todos;
     notifyListeners();
   }
 

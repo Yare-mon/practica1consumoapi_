@@ -7,9 +7,6 @@ import '../widgets/barra_busqueda.dart';
 import '../widgets/filtros_disponibilidad.dart';
 import '../widgets/libro_tile.dart';
 
-/// Lista de libros (GET). Escucha al controller con context.watch.
-/// MEJORA: buscador por titulo o autor, filtros Disponibles / Prestados,
-/// menu para ordenar y contador de resultados.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -45,25 +42,31 @@ class HomeScreen extends StatelessWidget {
         children: [
           const BarraBusqueda(),
           const FiltrosDisponibilidad(),
-          // MEJORA: cuantos libros se ven de cuantos hay en total.
+          // MEJORA: cuantos libros se ven de cuantos hay + boton Limpiar.
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Mostrando ${libros.length} de ${c.items.length} libros',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
+            padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Mostrando ${libros.length} de ${c.items.length} libros',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+                if (c.hayFiltros)
+                  TextButton.icon(
+                    onPressed: c.limpiarFiltros,
+                    icon: const Icon(Icons.filter_alt_off, size: 18),
+                    label: const Text('Limpiar'),
+                  ),
+              ],
             ),
           ),
           Expanded(
             child: libros.isEmpty
-                ? _SinResultados(
-                    onVerTodos: () =>
-                        c.cambiarFiltro(FiltroDisponibilidad.todos),
-                  )
+                ? _SinResultados(onLimpiar: c.limpiarFiltros)
                 : RefreshIndicator(
                     onRefresh: c.cargar,
                     child: ListView.separated(
@@ -119,8 +122,8 @@ class HomeScreen extends StatelessWidget {
 
 /// Mensaje cuando la busqueda o el filtro no dejan ningun libro.
 class _SinResultados extends StatelessWidget {
-  const _SinResultados({required this.onVerTodos});
-  final VoidCallback onVerTodos;
+  const _SinResultados({required this.onLimpiar});
+  final VoidCallback onLimpiar;
 
   @override
   Widget build(BuildContext context) {
@@ -137,8 +140,11 @@ class _SinResultados extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
-                onPressed: onVerTodos, child: const Text('Ver todos')),
+            OutlinedButton.icon(
+              onPressed: onLimpiar,
+              icon: const Icon(Icons.filter_alt_off),
+              label: const Text('Limpiar búsqueda y filtros'),
+            ),
           ],
         ),
       ),

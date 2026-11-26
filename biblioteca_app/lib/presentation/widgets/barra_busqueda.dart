@@ -14,39 +14,48 @@ class BarraBusqueda extends StatefulWidget {
 }
 
 class _BarraBusquedaState extends State<BarraBusqueda> {
+  late final LibroController _controller;
   late final TextEditingController _texto;
 
   @override
   void initState() {
     super.initState();
+    _controller = context.read<LibroController>();
     // Conserva lo que se habia buscado al regresar a Home.
-    _texto =
-        TextEditingController(text: context.read<LibroController>().busqueda);
+    _texto = TextEditingController(text: _controller.busqueda);
+    // Si la busqueda se limpia desde otro lado (boton Limpiar), se borra la caja.
+    _controller.addListener(_sincronizar);
+  }
+
+  void _sincronizar() {
+    if (_controller.busqueda != _texto.text) {
+      _texto.text = _controller.busqueda;
+      if (mounted) setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_sincronizar);
     _texto.dispose();
     super.dispose();
   }
 
   void _limpiar() {
     _texto.clear();
-    context.read<LibroController>().buscar('');
+    _controller.buscar('');
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = context.read<LibroController>();
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: TextField(
         controller: _texto,
         textInputAction: TextInputAction.search,
         onChanged: (valor) {
-          c.buscar(valor);
+          _controller.buscar(valor);
           setState(() {}); // para mostrar u ocultar el boton de limpiar
         },
         decoration: InputDecoration(
