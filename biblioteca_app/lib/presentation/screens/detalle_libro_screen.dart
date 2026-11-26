@@ -7,7 +7,7 @@ import '../controllers/libro_controller.dart';
 
 /// RETO: detalle de un libro. Consume GET /api/libros/{id} directamente
 /// (no usa la lista en memoria), asi se ve el 404 si el libro ya no existe.
-/// MEJORA: encabezado con icono en circulo, titulo y autor.
+/// MEJORA: nuevo diseno (encabezado, chip de estado y tarjeta de datos).
 class DetalleLibroScreen extends StatefulWidget {
   const DetalleLibroScreen({super.key, required this.id});
   final int id;
@@ -94,24 +94,35 @@ class _DetalleLibroScreenState extends State<DetalleLibroScreen> {
           textAlign: TextAlign.center,
           style: textos.titleMedium?.copyWith(color: colores.onSurfaceVariant),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
+        // Chip con el estado del libro.
+        Center(
+          child: Chip(
+            avatar: Icon(Icons.circle, size: 12, color: colorEstado),
+            label: Text(libro.disponible ? 'Disponible' : 'Prestado'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Tarjeta con los datos del libro.
         Card(
           child: Column(
             children: [
+              ListTile(
+                leading: const Icon(Icons.tag),
+                title: const Text('ID en la API'),
+                subtitle: Text('${libro.id}'),
+              ),
+              const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.person),
                 title: const Text('Autor'),
                 subtitle: Text(libro.autor),
               ),
+              const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Año'),
+                title: const Text('Año de publicación'),
                 subtitle: Text('${libro.anio}'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('Estado'),
-                subtitle: Text(libro.disponible ? 'Disponible' : 'Prestado'),
               ),
             ],
           ),
