@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/models/libro.dart';
 
 /// Formulario reutilizable para crear (POST) y editar (PUT).
-/// MEJORA: validacion del año.
+/// MEJORA: validacion del año, iconos en los campos y limite de caracteres.
 /// [onGuardar] regresa null si salio bien, o el mensaje de error.
 class LibroForm extends StatefulWidget {
   const LibroForm({
@@ -100,32 +100,55 @@ class _LibroFormState extends State<LibroForm> {
         children: [
           TextFormField(
             controller: _titulo,
-            decoration: const InputDecoration(labelText: 'Título'),
+            maxLength: 80,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              labelText: 'Título',
+              prefixIcon: Icon(Icons.title),
+            ),
             validator: (v) => (v == null || v.trim().isEmpty) ? 'Escribe el título' : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _autor,
-            decoration: const InputDecoration(labelText: 'Autor'),
+            maxLength: 60,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: 'Autor',
+              prefixIcon: Icon(Icons.person),
+            ),
             validator: (v) => (v == null || v.trim().isEmpty) ? 'Escribe el autor' : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _anio,
-            decoration: const InputDecoration(labelText: 'Año de publicación'),
+            maxLength: 4,
             keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Año de publicación',
+              prefixIcon: Icon(Icons.calendar_today),
+            ),
             validator: _validarAnio,
           ),
           const SizedBox(height: 12),
           SwitchListTile(
+            secondary: Icon(_disponible ? Icons.menu_book : Icons.lock_clock),
             title: const Text('Disponible para préstamo'),
+            subtitle: Text(_disponible ? 'Se puede prestar' : 'Está prestado'),
             value: _disponible,
             onChanged: (v) => setState(() => _disponible = v),
           ),
           const SizedBox(height: 20),
-          FilledButton(
+          FilledButton.icon(
             onPressed: _guardando ? null : _guardar,
-            child: Text(_guardando ? 'Guardando...' : widget.textoBoton),
+            icon: _guardando
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save),
+            label: Text(_guardando ? 'Guardando...' : widget.textoBoton),
           ),
         ],
       ),
