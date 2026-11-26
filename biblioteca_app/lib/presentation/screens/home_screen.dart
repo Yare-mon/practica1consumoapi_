@@ -7,8 +7,6 @@ import '../widgets/barra_busqueda.dart';
 import '../widgets/filtros_disponibilidad.dart';
 import '../widgets/libro_tile.dart';
 
-/// Lista de libros (GET). Escucha al controller con context.watch.
-/// MEJORA: buscador por titulo o autor y filtros Disponibles / Prestados.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -39,7 +37,7 @@ class HomeScreen extends StatelessWidget {
     } else if (c.items.isEmpty) {
       cuerpo = const Center(child: Text('No hay libros registrados'));
     } else {
-      final libros = c.visibles; // lista ya filtrada por busqueda y chips
+      final libros = c.visibles; // lista ya filtrada, buscada y ordenada
       cuerpo = Column(
         children: [
           const BarraBusqueda(),
@@ -67,6 +65,25 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Biblioteca ITT'),
         actions: [
+          // MEJORA: menu para elegir el orden de la lista.
+          PopupMenuButton<OrdenLibros>(
+            tooltip: 'Ordenar',
+            icon: const Icon(Icons.sort),
+            initialValue: c.orden,
+            onSelected: c.cambiarOrden,
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                  value: OrdenLibros.registro,
+                  child: Text('Orden de registro')),
+              PopupMenuItem(
+                  value: OrdenLibros.titulo, child: Text('Título (A-Z)')),
+              PopupMenuItem(
+                  value: OrdenLibros.autor, child: Text('Autor (A-Z)')),
+              PopupMenuItem(
+                  value: OrdenLibros.anio,
+                  child: Text('Año (más antiguo primero)')),
+            ],
+          ),
           IconButton(
             tooltip: 'Recargar (GET)',
             icon: const Icon(Icons.refresh),
