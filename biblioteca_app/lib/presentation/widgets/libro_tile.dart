@@ -6,8 +6,7 @@ import '../../domain/models/libro.dart';
 import '../controllers/libro_controller.dart';
 
 /// Un renglon de la lista con los botones Editar (PUT) y Eliminar (DELETE).
-/// Los botones YA estan conectados al controller: ustedes solo completan
-/// los TODO del service, repository y controller.
+/// MEJORA: icono dentro de un circulo con el color del estado.
 class LibroTile extends StatelessWidget {
   const LibroTile({super.key, required this.libro});
   final Libro libro;
@@ -39,15 +38,32 @@ class LibroTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Verde = disponible, naranja = prestado.
+    final colorEstado = libro.disponible ? Colors.green : Colors.orange;
+
     return ListTile(
       onTap: () => context.push('/libro/${libro.id}'),
-      leading: Icon(
-        libro.disponible ? Icons.menu_book : Icons.lock_clock,
-        color: libro.disponible ? Colors.green : Colors.orange,
+      leading: CircleAvatar(
+        backgroundColor: colorEstado.shade100,
+        child: Icon(
+          libro.disponible ? Icons.menu_book : Icons.lock_clock,
+          color: colorEstado.shade700,
+        ),
       ),
       title: Text(libro.titulo),
-      subtitle: Text('${libro.autor} · ${libro.anio}'
-          '${libro.disponible ? '' : ' · Prestado'}'),
+      subtitle: Text.rich(
+        TextSpan(
+          text: '${libro.autor} · ${libro.anio}',
+          children: [
+            if (!libro.disponible)
+              TextSpan(
+                text: ' · Prestado',
+                style: TextStyle(
+                    color: colorEstado.shade700, fontWeight: FontWeight.w600),
+              ),
+          ],
+        ),
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
