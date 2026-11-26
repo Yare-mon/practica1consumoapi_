@@ -7,6 +7,9 @@ import '../widgets/barra_busqueda.dart';
 import '../widgets/filtros_disponibilidad.dart';
 import '../widgets/libro_tile.dart';
 
+/// Lista de libros (GET). Escucha al controller con context.watch.
+/// MEJORA: buscador por titulo o autor, filtros Disponibles / Prestados,
+/// menu para ordenar y contador de resultados.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -42,6 +45,19 @@ class HomeScreen extends StatelessWidget {
         children: [
           const BarraBusqueda(),
           const FiltrosDisponibilidad(),
+          // MEJORA: cuantos libros se ven de cuantos hay en total.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Mostrando ${libros.length} de ${c.items.length} libros',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ),
+          ),
           Expanded(
             child: libros.isEmpty
                 ? _SinResultados(
