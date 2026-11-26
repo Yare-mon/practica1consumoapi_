@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/models/libro.dart';
 
 /// Formulario reutilizable para crear (POST) y editar (PUT).
+/// MEJORA: validacion del año.
 /// [onGuardar] regresa null si salio bien, o el mensaje de error.
 class LibroForm extends StatefulWidget {
   const LibroForm({
@@ -45,6 +46,16 @@ class _LibroFormState extends State<LibroForm> {
     _autor.dispose();
     _anio.dispose();
     super.dispose();
+  }
+
+  /// MEJORA: el año debe ser un numero entre 1450 (imprenta de Gutenberg)
+  /// y el año actual.
+  String? _validarAnio(String? valor) {
+    final anio = int.tryParse(valor?.trim() ?? '');
+    if (anio == null) return 'Escribe un año válido';
+    final actual = DateTime.now().year;
+    if (anio < 1450 || anio > actual) return 'El año debe estar entre 1450 y $actual';
+    return null;
   }
 
   Future<void> _guardar() async {
@@ -103,8 +114,7 @@ class _LibroFormState extends State<LibroForm> {
             controller: _anio,
             decoration: const InputDecoration(labelText: 'Año de publicación'),
             keyboardType: TextInputType.number,
-            validator: (v) =>
-                int.tryParse(v?.trim() ?? '') == null ? 'Escribe un año válido' : null,
+            validator: _validarAnio,
           ),
           const SizedBox(height: 12),
           SwitchListTile(
